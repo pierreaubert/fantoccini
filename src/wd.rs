@@ -337,10 +337,13 @@ impl TimeoutConfiguration {
 
 impl TimeoutConfiguration {
     pub(crate) fn into_params(self) -> TimeoutsParameters {
+        // The options nest: an outer `None` omits the field from the request altogether, while an
+        // inner `None` explicitly sends `null` to disable that timeout. We never disable a
+        // timeout, so each value we hold becomes `Some(Some(_))` and each `None` stays omitted.
         TimeoutsParameters {
             script: self.script.map(Some),
-            page_load: self.page_load,
-            implicit: self.implicit,
+            page_load: self.page_load.map(Some),
+            implicit: self.implicit.map(Some),
         }
     }
 }
