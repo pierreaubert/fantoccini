@@ -30,6 +30,12 @@ jobs:
           - os: ubuntu-latest
             browser: chrome
             toolchain: beta
+        exclude:
+          # brew's main tap is deprecating chromedriver due to
+          # https://github.com/orgs/Homebrew/discussions/6482
+          - os: macos-latest
+            browser: chrome
+            toolchain: stable
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag=v6.0.2
         with:
