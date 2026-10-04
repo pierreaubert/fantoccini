@@ -5,7 +5,16 @@ use std::time::Duration;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Connect to webdriver instance that is listening on port 4444
+    #[cfg(feature = "native-tls")]
     let client = ClientBuilder::native()
+        .connect("http://localhost:4444")
+        .await?;
+    #[cfg(all(not(feature = "native-tls"), feature = "rustls-tls"))]
+    let client = ClientBuilder::rustls()?
+        .connect("http://localhost:4444")
+        .await?;
+    #[cfg(not(any(feature = "native-tls", feature = "rustls-tls")))]
+    let client = ClientBuilder::new(hyper_util::client::legacy::connect::HttpConnector::new())
         .connect("http://localhost:4444")
         .await?;
 
