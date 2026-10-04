@@ -339,9 +339,46 @@ impl TimeoutConfiguration {
     pub(crate) fn into_params(self) -> TimeoutsParameters {
         TimeoutsParameters {
             script: self.script.map(Some),
-            page_load: self.page_load,
-            implicit: self.implicit,
+            page_load: self.page_load.map(Some),
+            implicit: self.implicit.map(Some),
         }
+    }
+}
+
+#[cfg(test)]
+mod timeout_parameter_tests {
+    use super::TimeoutConfiguration;
+    use serde_json::json;
+    use std::time::Duration;
+
+    #[test]
+    fn omitted_timeouts_remain_omitted() {
+        let params = TimeoutConfiguration::new(None, None, None).into_params();
+        assert_eq!(serde_json::to_value(params).unwrap(), json!({}));
+    }
+
+    #[test]
+    fn zero_and_positive_timeouts_keep_their_values() {
+        let params = TimeoutConfiguration::new(
+            Some(Duration::ZERO),
+            Some(Duration::from_millis(1234)),
+            Some(Duration::ZERO),
+        )
+        .into_params();
+        assert_eq!(
+            serde_json::to_value(params).unwrap(),
+            json!({"script": 0, "pageLoad": 1234, "implicit": 0})
+        );
+    }
+
+    #[test]
+    fn explicit_script_null_remains_distinct_from_omission() {
+        let params = webdriver::command::TimeoutsParameters {
+            script: Some(None),
+            page_load: None,
+            implicit: None,
+        };
+        assert_eq!(serde_json::to_value(params).unwrap(), json!({"script": null}));
     }
 }
 
